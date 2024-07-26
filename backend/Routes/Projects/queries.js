@@ -2,27 +2,13 @@ import express from "express";
 import { models } from "../../../schemas/index.js";
 import bodyParser from "body-parser";
 import {sequelize} from "../../../schemas/index.js"
-// import cors from "cors";
-// import Users from "../../../schemas/models/Users.js";
 
 const router = express.Router();
-// router.use(cors());
 router.use(bodyParser.json());
 
-// Route to fetch all active Projects or by category if provided
 router.get("/", async (req, res) => {
-    const { category } = req.query;
-
     try {
-        let filter = { status: "active" };
-
-        if (category) {
-            filter.category = category;
-        }
-
-        const activeProjects = await models.Projects.findAll({
-            where: filter
-        });
+        const activeProjects = await models.Projects.findAll();
 
         res.json(activeProjects);
     } catch (error) {
@@ -31,7 +17,6 @@ router.get("/", async (req, res) => {
     }
 });
 
-// Route to fetch a product by ID
 router.get("/:id", async (req, res) => {
     try {
         const product = await models.Projects.findByPk(req.params.id);
@@ -46,6 +31,23 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-
+router.post ("/add", async (req,res)=>{
+    try{
+        const {name, owner, githubLink} = req.body;
+        const existingProject = await models.Projects.findOne({where: {githubLink}});
+        if (existingProject){
+            return res.status(400).json({ error: 'This project is already there' });
+        }
+        const project = await models.Projects.create({
+            name,
+            githubLink,
+            owner
+        })
+        console.log("Success");
+        res.status(200);
+    } catch (error){
+        res.status(500).json({ error: 'Error adding the new project' });
+    }
+})
 
 export default router;

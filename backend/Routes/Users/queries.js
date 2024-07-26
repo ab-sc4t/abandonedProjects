@@ -3,9 +3,20 @@ import { models } from "../../../schemas/index.js";
 import bodyParser from "body-parser";
 import bcrypt from "bcrypt";
 import {sequelize} from "../../../schemas/index.js"
+import session from "express-session"
+import passport from "passport";
 
 const router = express.Router();
 router.use(bodyParser.json());
+
+router.use(session({
+    secret: "TESTINGSESSION",
+    resave: false,
+    saveUninitialized: true
+}))
+
+router.use(passport.initialize());
+router.use(passport.session());
 
 const saltRounds = 10;
 

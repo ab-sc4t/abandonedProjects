@@ -2,6 +2,7 @@ import express from "express";
 import routes from "./Routes/index.js";
 import {sequelize, runSeeds} from "../schemas/index.js";
 import cors from "cors";
+import session from "express-session"
 
 const app = express();
 const corsOptions = {
