@@ -39,20 +39,37 @@ const Body = () => {
         },
     ];
 
+    const checkSession = async () => {
+        try {
+            const response = await axios.get('http://localhost:8080/profile/check-session');
+            console.log(response.data.message)
+            return response.data.loggedIn;
+        } catch (error) {
+            console.error('Error checking session:', error);
+            return false;
+        }
+    };
 
-    const goToLogin = () => {
-        window.open("/login")
-    }
+    const goToLogin = async () => {
+        const isLoggedIn = await checkSession();
+        if (isLoggedIn) {
+            window.location.href = "/your-profile";
+        } else {
+            window.location.href = "/login";
+        }
+    };
 
     const goToAddProject = () => {
-        window.open("/add-project")
+        window.location.href = "/add-project"
     }
 
     return (
         <>
-            <Button onClick={goToLogin}>
-                Profile
-            </Button>
+            <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "flex-end", px: 3 }}>
+                <Button onClick={goToLogin}>
+                    Profile
+                </Button>
+            </Box>
             <Box sx={{ flexGrow: 1, p: 3 }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
                     <Typography variant="h6" component="h6">

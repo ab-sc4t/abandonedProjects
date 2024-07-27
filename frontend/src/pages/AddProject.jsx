@@ -13,20 +13,18 @@ const AddProject = () => {
         });
     };
 
-    const handleSubmitAddProject = (e) => {
+    const handleSubmitAddProject = async (e) => {
         e.preventDefault();
-        console.log("testing")
-        console.log(projectData)
-        axios.post('http://localhost:8080/projects/add', projectData)
-            .then(res => {
-                window.open("/")
-                console.log('Data saved:', res.data);
-            })
-            .catch(error => {
-                console.error('There was an error saving the data!', error);
-                console.error('Error data:', error.res.data);
-            });
-    }
+        try {
+            const response = await axios.post('http://localhost:8080/projects/add', projectData);
+            console.log('Data saved:', response.data);
+            alert(response.data.message)
+            console.log(response.data.message)
+            window.location.href = response.data.route;
+        } catch (error) {
+            console.error('There was an error saving the data!', error);
+        }
+    };
 
     return (
         <>

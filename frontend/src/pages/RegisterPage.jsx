@@ -14,7 +14,7 @@ import {
 import axios from "axios";
 
 const RegisterPage = () => {
-    const [formData, setFormData] = useState({ username: "", firstname: '', lastname: '', email: "", password: '', mobile: "", address: "" });
+    const [formData, setFormData] = useState({firstname: '', lastname: '', email: "", password: ''});
 
     const handleChange = (e) => {
         setFormData({
@@ -23,21 +23,21 @@ const RegisterPage = () => {
         });
     };
     
-    const handleSubmitRegister = (e) => {
+
+    const handleSubmitRegister = async (e) => {
         e.preventDefault();
-        axios.post('http://localhost:8080/profile/register', formData)
-            .then(response => {
-                console.log('Data saved:', response.data);
+        try{
+            const response = await axios.post('http://localhost:8080/profile/register', formData)
+            console.log('Data saved:', response.data);
                 const {userID } = response.data;
                 if (userID) {
                     window.open(`/`, 'blank'); 
                 } else {
                     console.error('User ID not found in the response');
                 }
-            })
-            .catch(error => {
+        }catch(error){
                 console.error('There was an error saving the data!', error);
-            });
+            };
     }
 
     return (

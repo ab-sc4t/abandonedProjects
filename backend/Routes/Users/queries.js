@@ -2,8 +2,8 @@ import express from "express";
 import { models } from "../../../schemas/index.js";
 import bodyParser from "body-parser";
 import bcrypt from "bcrypt";
-import {sequelize} from "../../../schemas/index.js"
-import session from "express-session"
+import { sequelize } from "../../../schemas/index.js";
+import session from "express-session";
 import passport from "passport";
 
 const router = express.Router();
@@ -12,8 +12,9 @@ router.use(bodyParser.json());
 router.use(session({
     secret: "TESTINGSESSION",
     resave: false,
-    saveUninitialized: true
-}))
+    saveUninitialized: true,
+    // cookie: { secure: false } // Set to true if using https
+}));
 
 router.use(passport.initialize());
 router.use(passport.session());
@@ -29,9 +30,18 @@ router.get("/", async (req, res) => {
     }
 });
 
+router.get('/check-session', (req, res) => {
+    if (req.session.userID) {
+        res.status(200).json({ loggedIn: true, message: "LOGGED IN" });
+    } else {
+        res.status(200).json({ loggedIn: false });
+    }
+});
+
+
 router.post('/register', async (req, res) => {
     try {
-        const { username, email, mobile, firstname, lastname, password } = req.body;
+        const { email, firstname, lastname, password } = req.body;
         const existingUser = await models.Users.findOne({ where: { email } });
         if (existingUser) {
             return res.status(400).json({ error: 'Email already in use' });
@@ -41,16 +51,15 @@ router.post('/register', async (req, res) => {
             if (err) {
                 return res.status(500).json({ error: 'Error hashing password' });
             }
-
             try {
                 const user = await models.Users.create({
-                    username: username || email,
                     firstname,
                     lastname,
                     email,
                     password: hash,
-                    mobile
                 });
+                const userID = user.id;
+                req.session.userID = userID;
                 res.status(201).json({ userID });
             } catch (error) {
                 res.status(500).json({ error: 'Error creating user or user table' });
@@ -63,24 +72,21 @@ router.post('/register', async (req, res) => {
 
 router.post("/login", async (req, res) => {
     try {
-        const email = req.body.email;
-        const password = req.body.password;
-        let filter = { email: email }
-        const user = await models.Users.findOne(
-            { where: filter }
-        )
+        const { email, password } = req.body;
+        const user = await models.Users.findOne({ where: { email } });
+
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
+
         const match = await bcrypt.compare(password, user.password);
         if (!match) {
             return res.status(401).json({ error: 'Invalid password' });
+        } else {
+            req.session.userID = user.id;
+            res.status(200).json({ message: 'Login successful', redirectUrl: '/' });
         }
-        else {
-            res.status(200).json({ message: 'Login successful', redirectUrl: 'localhost:3000/' });
-        }
-    }
-    catch (error) {
+    } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });

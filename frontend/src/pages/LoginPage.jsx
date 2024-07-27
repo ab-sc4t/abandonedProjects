@@ -26,24 +26,23 @@ const LoginPage = () => {
             [e.target.name]: e.target.value,
         });
     };
-    // const handleSubmitLogin = (e) => {
-    //     e.preventDefault();
+    const handleSubmitLogin = async (e) => {
+        e.preventDefault();
 
-    //     axios.post('http://localhost:8080/profile/login', formData)
-    //         .then(response => {
-    //             if (response.data.redirectUrl) {
-    //                 console.log('Redirecting to:', response.data.redirectUrl);
-    //                 goToResult(response.data.redirectUrl);
-    //             } else {
-    //                 console.error('No redirect URL provided');
-    //             }
-    //         })
-    //         .catch(error => {
-    //             console.error('There was an error saving the data!', error);
-    //             alert(error.response ? error.response.data.error : 'An error occurred');
-    //         });
-    // };
+        try {
+            const response = await axios.post('http://localhost:8080/profile/login', formData);
 
+            if (response.data.redirectUrl) {
+                console.log('Redirecting to:', response.data.redirectUrl);
+                window.location.href = response.data.redirectUrl;
+            } else {
+                console.error('No redirect URL provided');
+            }
+        } catch (error) {
+            console.error('There was an error logging in:', error);
+            alert(error.response ? error.response.data.error : 'An error occurred');
+        }
+    };
 
     return (
         <Container
@@ -70,8 +69,8 @@ const LoginPage = () => {
                                 LOGIN
                             </Typography>
                         </div>
-                        {/* <form onSubmit={handleSubmitLogin}> */}
-                        <form>
+                        <form onSubmit={handleSubmitLogin}>
+                            {/* <form> */}
                             <div className="leftAlign" style={{ marginTop: "2rem" }}>
                                 <TextField
                                     required
@@ -104,7 +103,7 @@ const LoginPage = () => {
                                     />
                                 </div>
                                 <div className="leftAlign" style={{ marginTop: "0.8rem" }}>
-                                    <Button variant="contained" sx={{ backgroundColor: "#EAEDF0", color: "black" }}>
+                                    <Button type="submit" variant="contained" sx={{ backgroundColor: "#EAEDF0", color: "black" }}>
                                         LOGIN
                                     </Button>
                                 </div>
