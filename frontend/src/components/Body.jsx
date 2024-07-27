@@ -41,8 +41,8 @@ const Body = () => {
 
     const checkSession = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/profile/check-session');
-            console.log(response.data.message)
+            const response = await axios.get('http://localhost:8080/profile/check-session', { withCredentials: true });
+            console.log(response.data.message); 
             return response.data.loggedIn;
         } catch (error) {
             console.error('Error checking session:', error);
@@ -59,8 +59,18 @@ const Body = () => {
         }
     };
 
-    const goToAddProject = () => {
-        window.location.href = "/add-project"
+    // goToLogin = () =>{
+    //     window.location.href = "/login";
+    // }
+
+    const goToAddProject = async () => {
+        const isLoggedIn = await checkSession();
+        if (isLoggedIn) {
+            window.location.href = "/add-project";
+        } else {
+            // window.location.href = "/login";
+            window.location.href = "/add-project";
+        }
     }
 
     return (
