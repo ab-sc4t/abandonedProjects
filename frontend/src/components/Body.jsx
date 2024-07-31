@@ -3,6 +3,7 @@ import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
 import { Box, Button, Typography, Stack } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import axios from "axios";
+import GoogleIcon from '@mui/icons-material/Google';
 
 const Body = () => {
     const [projects, setProjects] = useState([]);
@@ -49,7 +50,7 @@ const Body = () => {
             headerName: 'Github Link',
             width: 540,
             renderCell: (params) => (
-                <a href={params.value} target="_blank" rel="noopener noreferrer">
+                <a href={params.value} target="_blank" rel="noopener noreferrer" style={{color: "blue"}}>
                     {params.value}
                 </a>
             ),
@@ -65,7 +66,7 @@ const Body = () => {
             }
         },
     ];
-    
+
 
     const googleauthfunc = () => {
         window.location.href = 'http://localhost:8080/profile/auth/google'; // Ensure this matches your backend URL
@@ -103,14 +104,17 @@ const Body = () => {
                     </>
 
                 ) : (
-                    <Button onClick={googleauthfunc} variant="contained" sx={{ my: 3 }}>
-                        Sign In with Google
-                    </Button>
+                    <>
+                        <Button onClick={googleauthfunc} variant="contained" sx={{ marginTop: 3 }}>
+                            <GoogleIcon sx={{padding: "0 0.4rem 0 0"}}/>
+                            Sign In with Google
+                        </Button>
+                    </>
                 )}
             </Box>
             <Box sx={{ flexGrow: 1, p: 3 }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-                    <Typography variant="h6" component="h6">
+                    <Typography variant="h4" component="h4">
                         ABANDONED PROJECTS
                     </Typography>
                     <Button variant="contained" color="primary" onClick={goToAddProject}>
