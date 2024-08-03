@@ -15,8 +15,8 @@ router.use(session({
     resave: false,
     saveUninitialized: true,
     cookie: {
-        secure: false, // Set to true if using https
-        maxAge: 24 * 60 * 60 * 1000 // Session expiry (1 day)
+        secure: false, 
+        maxAge: 24 * 60 * 60 * 1000 
     }
 }));
 

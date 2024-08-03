@@ -5,7 +5,16 @@ import { Box, Stack, Button, TextField } from '@mui/material'
 
 const AddProject = () => {
     const theme = useTheme();
-    const [projectData, setProjectData] = useState({ name: "", githubLink: '', owner: '' });
+    const [projectData, setProjectData] = useState({ name: "", githubLink: '', owner: '', email: " " });
+    useEffect(() => {
+        const userEmail = sessionStorage.getItem('userEmail'); 
+        if (userEmail) {
+            setProjectData(prevData => ({
+                ...prevData,
+                email: userEmail,
+            }));
+        }
+    }, []);
     const handleChange = (e) => {
         setProjectData({
             ...projectData,
@@ -16,6 +25,7 @@ const AddProject = () => {
     const handleSubmitAddProject = async (e) => {
         e.preventDefault();
         try {
+            console.log("TESTING");
             const response = await axios.post('http://localhost:8080/projects/add', projectData);
             console.log('Data saved:', response.data);
             alert(response.data.message)

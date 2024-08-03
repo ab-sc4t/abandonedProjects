@@ -7,11 +7,11 @@ import GoogleIcon from '@mui/icons-material/Google';
 
 const Body = () => {
     const [projects, setProjects] = useState([]);
-    const [user, setUser] = useState(null); // Add state for user
+    const [myProjects, setMyProjects] = useState([]);
+    const [user, setUser] = useState(null);
     const theme = useTheme();
 
     useEffect(() => {
-        // Fetch projects
         const fetchProjects = async () => {
             try {
                 const response = await axios.get(`http://localhost:8080/projects`);
@@ -21,7 +21,6 @@ const Body = () => {
             }
         };
 
-        // Check session and user details
         const checkUser = async () => {
             try {
                 console.log("HELLOOOOOOOO");
@@ -30,6 +29,8 @@ const Body = () => {
                     console.log("SESSIONNNN");
                     const userResponse = await axios.get('http://localhost:8080/profile/user', { withCredentials: true });
                     setUser(userResponse.data);
+                    sessionStorage.setItem('userEmail', userResponse.data.email);
+                    console.log(user);
                 }
             } catch (error) {
                 console.log("Error")
@@ -41,16 +42,32 @@ const Body = () => {
         checkUser();
     }, []);
 
+    useEffect(() => {
+        const fetchProjects2 = async () => {
+            const email = sessionStorage.getItem('userEmail');
+            try {
+                const response = await axios.get(`http://localhost:8080/projects/${email}`);
+                setMyProjects(response.data);
+            } catch (error) {
+                console.error("Error fetching projects", error);
+            }
+        };
+
+        if (user) {
+            fetchProjects2();
+        }
+    }, [user]);
+
     const columns = [
-        { field: 'id', headerName: '#', width: 90 },
+        { field: 'id', headerName: 'S. No', width: 90 },
         { field: 'name', headerName: 'Project Name', width: 180 },
         { field: 'owner', headerName: 'Owner', width: 180 },
         {
             field: 'githubLink',
-            headerName: 'Github Link',
+            headerName: 'Project Link',
             width: 540,
             renderCell: (params) => (
-                <a href={params.value} target="_blank" rel="noopener noreferrer" style={{color: "blue"}}>
+                <a href={params.value} target="_blank" rel="noopener noreferrer" style={{ color: "cyan" }}>
                     {params.value}
                 </a>
             ),
@@ -65,8 +82,63 @@ const Body = () => {
                 return formattedDate;
             }
         },
+        { field: 'email', headerName: 'Email', width: 300 },
     ];
 
+    const columns2 = [
+        { field: 'id', headerName: 'S. No', width: 90 },
+        { field: 'name', headerName: 'Project Name', width: 180 },
+        { field: 'owner', headerName: 'Owner', width: 180 },
+        {
+            field: 'githubLink',
+            headerName: 'Project Link',
+            width: 540,
+            renderCell: (params) => (
+                <a href={params.value} target="_blank" rel="noopener noreferrer" style={{ color: "cyan" }}>
+                    {params.value}
+                </a>
+            ),
+        },
+        {
+            field: 'createdAt',
+            headerName: 'Issue Date',
+            width: 180,
+            renderCell: (params) => {
+                const date = new Date(params.value);
+                const formattedDate = date.toLocaleDateString();
+                return formattedDate;
+            }
+        },
+        { field: 'email', headerName: 'Email', width: 300 },
+        {
+            field: 'actions',
+            headerName: 'Actions',
+            width: 150,
+            renderCell: (params) => (
+                <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={() => handleDelete(params.id)}
+                >
+                    Delete
+                </Button>
+            ),
+        },
+    ];
+
+    const handleDelete = async (id) => {
+        if (window.confirm('Are you sure you want to delete this project?')) {
+            try {
+                await axios.delete(`http://localhost:8080/projects/delete/${id}`, { withCredentials: true });
+                setProjects((prevProjects) => prevProjects.filter((project) => project.id !== id));
+                setMyProjects((prevProjects) => prevProjects.filter((project) => project.id !== id));
+                alert('Project deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting project:', error);
+                alert('Failed to delete project. Please try again.');
+            }
+        }
+    };
 
     const googleauthfunc = () => {
         window.location.href = 'http://localhost:8080/profile/auth/google'; // Ensure this matches your backend URL
@@ -106,7 +178,7 @@ const Body = () => {
                 ) : (
                     <>
                         <Button onClick={googleauthfunc} variant="contained" sx={{ marginTop: 3 }}>
-                            <GoogleIcon sx={{padding: "0 0.4rem 0 0"}}/>
+                            <GoogleIcon sx={{ padding: "0 0.4rem 0 0" }} />
                             Sign In with Google
                         </Button>
                     </>
@@ -121,37 +193,121 @@ const Body = () => {
                         + ADD PROJECT
                     </Button>
                 </Stack>
-                <DataGrid
-                    rows={projects}
-                    columns={columns}
-                    initialState={{
-                        pagination: {
-                            paginationModel: { pageSize: 10 },
-                        },
-                    }}
-                    pageSizeOptions={[10]}
-                    slots={{ toolbar: GridToolbar }}
-                    sx={{
-                        '& .MuiDataGrid-cell': {
-                            color: theme.palette.text.primary,
-                        },
-                        '& .MuiDataGrid-columnHeaders': {
-                            backgroundColor: theme.palette.background.paper,
-                        },
-                        '& .MuiDataGrid-footerContainer': {
-                            backgroundColor: theme.palette.background.paper,
-                        },
-                        '& .MuiButton-root': {
-                            color: theme.palette.text.primary,
-                        },
-                        '& .MuiDataGrid-toolbarContainer': {
-                            color: theme.palette.text.primary,
-                        },
-                        '& .MuiSvgIcon-root': {
-                            color: theme.palette.text.primary,
-                        },
-                    }}
-                />
+                {user ? (
+                    <>
+                        <Typography variant="h6" component="h6">
+                            My Projects
+                        </Typography>
+                        <DataGrid
+                            rows={myProjects}
+                            columns={columns2}
+                            autoHeight
+                            initialState={{
+                                pagination: {
+                                    paginationModel: { pageSize: 10 },
+                                },
+                            }}
+                            pageSizeOptions={[10]}
+                            slots={{ toolbar: GridToolbar }}
+                            sx={{
+                                '& .MuiDataGrid-cell': {
+                                    color: theme.palette.text.primary,
+                                },
+                                '& .MuiDataGrid-columnHeaders': {
+                                    backgroundColor: theme.palette.background.paper,
+                                },
+                                '& .MuiDataGrid-footerContainer': {
+                                    backgroundColor: theme.palette.background.paper,
+                                },
+                                '& .MuiButton-root': {
+                                    color: theme.palette.text.primary,
+                                },
+                                '& .MuiDataGrid-toolbarContainer': {
+                                    color: theme.palette.text.primary,
+                                },
+                                '& .MuiSvgIcon-root': {
+                                    color: theme.palette.text.primary,
+                                },
+                                marginBottom: "2rem",
+                            }}
+                        />
+                        <Typography variant="h6" component="h6">
+                            All Projects
+                        </Typography>
+                        <DataGrid
+                            rows={projects}
+                            columns={columns}
+                            autoHeight
+                            initialState={{
+                                pagination: {
+                                    paginationModel: { pageSize: 10 },
+                                },
+                            }}
+                            pageSizeOptions={[10]}
+                            slots={{ toolbar: GridToolbar }}
+                            sx={{
+                                '& .MuiDataGrid-cell': {
+                                    color: theme.palette.text.primary,
+                                },
+                                '& .MuiDataGrid-columnHeaders': {
+                                    backgroundColor: theme.palette.background.paper,
+                                },
+                                '& .MuiDataGrid-footerContainer': {
+                                    backgroundColor: theme.palette.background.paper,
+                                },
+                                '& .MuiButton-root': {
+                                    color: theme.palette.text.primary,
+                                },
+                                '& .MuiDataGrid-toolbarContainer': {
+                                    color: theme.palette.text.primary,
+                                },
+                                '& .MuiSvgIcon-root': {
+                                    color: theme.palette.text.primary,
+                                },
+                            }}
+                        />
+                    </>
+
+                ) : (
+                    <>
+                        <Typography variant="h6" component="h6">
+                            All Projects
+                        </Typography>
+                        <DataGrid
+                            rows={projects}
+                            columns={columns}
+                            autoHeight
+                            initialState={{
+                                pagination: {
+                                    paginationModel: { pageSize: 10 },
+                                },
+                            }}
+                            pageSizeOptions={[10]}
+                            slots={{ toolbar: GridToolbar }}
+                            sx={{
+                                '& .MuiDataGrid-cell': {
+                                    color: theme.palette.text.primary,
+                                },
+                                '& .MuiDataGrid-columnHeaders': {
+                                    backgroundColor: theme.palette.background.paper,
+                                },
+                                '& .MuiDataGrid-footerContainer': {
+                                    backgroundColor: theme.palette.background.paper,
+                                },
+                                '& .MuiButton-root': {
+                                    color: theme.palette.text.primary,
+                                },
+                                '& .MuiDataGrid-toolbarContainer': {
+                                    color: theme.palette.text.primary,
+                                },
+                                '& .MuiSvgIcon-root': {
+                                    color: theme.palette.text.primary,
+                                },
+                            }}
+                        />
+                    </>
+                )}
+
             </Box>
         </>
     );
