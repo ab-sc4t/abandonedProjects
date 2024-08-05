@@ -5,7 +5,7 @@ import { Box, Stack, Button, TextField } from '@mui/material'
 
 const AddProject = () => {
     const theme = useTheme();
-    const [projectData, setProjectData] = useState({ name: "", githubLink: '', owner: '', email: " " });
+    const [projectData, setProjectData] = useState({ name: "", githubLink: '', owner: '', email: " ", typeProject: " " });
     useEffect(() => {
         const userEmail = sessionStorage.getItem('userEmail'); 
         if (userEmail) {
@@ -62,6 +62,14 @@ const AddProject = () => {
                             label="Project Link"
                             name="githubLink"
                             value={projectData.githubLink}
+                            onChange={handleChange}
+                            sx={{ margin: "2rem 2rem 1rem 2rem" }}
+                        />
+                        <TextField
+                            id="outlined-required"
+                            label="Project Type"
+                            name="typeProject"
+                            value={projectData.typeProject}
                             onChange={handleChange}
                             sx={{ margin: "2rem 2rem 1rem 2rem" }}
                         />

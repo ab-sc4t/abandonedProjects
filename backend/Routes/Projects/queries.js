@@ -50,7 +50,7 @@ router.get("/:email", async (req, res) => {
 
 router.post("/add", async (req, res) => {
     try {
-        const { name, owner, githubLink, email } = req.body;
+        const { name, owner, githubLink, email, typeProject } = req.body;
         const existingProject = await models.Projects.findOne({ where: { githubLink } });
         if (existingProject) {
             return res.status(400).json({ error: 'This project is already there' });
@@ -61,6 +61,7 @@ router.post("/add", async (req, res) => {
             githubLink,
             owner,
             email,
+            typeProject,
         });
         console.log("Success");
         return res.status(200).json({

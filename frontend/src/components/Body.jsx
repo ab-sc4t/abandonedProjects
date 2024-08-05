@@ -83,6 +83,7 @@ const Body = () => {
             }
         },
         { field: 'email', headerName: 'Email', width: 300 },
+        { field: 'typeProject', headerName: 'Project Category', width: 240 },
     ];
 
     const columns2 = [
@@ -110,6 +111,7 @@ const Body = () => {
             }
         },
         { field: 'email', headerName: 'Email', width: 300 },
+        { field: 'typeProject', headerName: 'Project Category', width: 240 },
         {
             field: 'actions',
             headerName: 'Actions',
@@ -124,6 +126,7 @@ const Body = () => {
                 </Button>
             ),
         },
+
     ];
 
     const handleDelete = async (id) => {
