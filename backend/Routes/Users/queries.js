@@ -2,7 +2,6 @@ import express, { application } from "express";
 import { models } from "../../../schemas/index.js";
 import bodyParser from "body-parser";
 import bcrypt from "bcrypt";
-// import { sequelize } from "../../../schemas/index.js";
 import session from "express-session";
 import passport from "passport";
 import GoogleStrategy from "passport-google-oauth20";
@@ -14,7 +13,7 @@ const router = express.Router();
 router.use(bodyParser.json());
 
 router.use(session({
-    secret: "TESTINGSESSION",
+    secret: process.env.SECRET_SESSION,
     resave: false,
     saveUninitialized: true,
     cookie: {
