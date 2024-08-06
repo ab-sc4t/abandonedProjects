@@ -2,7 +2,9 @@ import express from "express";
 import routes from "./Routes/index.js";
 import {sequelize, runSeeds} from "../schemas/index.js";
 import cors from "cors";
-import session from "express-session"
+import dotenv from 'dotenv';
+
+dotenv.config({ path: '../.env' });
 
 const app = express();
 const corsOptions = {
@@ -11,7 +13,7 @@ const corsOptions = {
     credentials: true,
 }
 app.use(cors(corsOptions));
-const port = 8080;
+const port = process.env.DB_PORT;
 
 
 sequelize.sync({force: true}).then(()=>{

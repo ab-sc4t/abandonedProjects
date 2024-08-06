@@ -2,10 +2,13 @@ import express, { application } from "express";
 import { models } from "../../../schemas/index.js";
 import bodyParser from "body-parser";
 import bcrypt from "bcrypt";
-import { sequelize } from "../../../schemas/index.js";
+// import { sequelize } from "../../../schemas/index.js";
 import session from "express-session";
 import passport from "passport";
 import GoogleStrategy from "passport-google-oauth20";
+import dotenv from 'dotenv';
+
+dotenv.config({ path: '../.env' });
 
 const router = express.Router();
 router.use(bodyParser.json());
@@ -15,8 +18,8 @@ router.use(session({
     resave: false,
     saveUninitialized: true,
     cookie: {
-        secure: false, 
-        maxAge: 24 * 60 * 60 * 1000 
+        secure: false,
+        maxAge: 24 * 60 * 60 * 1000
     }
 }));
 
@@ -136,13 +139,15 @@ router.get('/logout', (req, res) => {
 
 
 passport.use("google", new GoogleStrategy({
-    clientID: "270797624745-qc2uu6ul9u13sb79hmuortmhb0jqqros.apps.googleusercontent.com",
-    clientSecret: "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",
+    // clientID: "270797624745-qc2uu6ul9u13sb79hmuortmhb0jqqros.apps.googleusercontent.com",
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: "http://localhost:8080/profile/auth/google/callback",
     userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
 }, async (accessToken, refreshToken, profile, cb) => {
     try {
         // Extract user information from the profile
+        console.log(process.env.GOOGLE_CLIENT_ID);
         const email = profile._json.email;
         const firstname = profile._json.given_name || 'Unknown';
         const lastname = profile._json.family_name || 'Unknown';
