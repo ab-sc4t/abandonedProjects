@@ -138,37 +138,29 @@ router.get('/logout', (req, res) => {
 
 
 passport.use("google", new GoogleStrategy({
-    // clientID: "270797624745-qc2uu6ul9u13sb79hmuortmhb0jqqros.apps.googleusercontent.com",
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://localhost:8080/profile/auth/google/callback",
-    userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
+    callbackURL: process.env.GOOGLE_CALLBACK_URL,
+    userProfileURL: process.env.GOOGLE_PROFILEURL,
 }, async (accessToken, refreshToken, profile, cb) => {
     try {
-        // Extract user information from the profile
         console.log(process.env.GOOGLE_CLIENT_ID);
         const email = profile._json.email;
         const firstname = profile._json.given_name || 'Unknown';
         const lastname = profile._json.family_name || 'Unknown';
 
-        // Check if the user already exists in the database
         let user = await models.Users.findOne({ where: { email } });
 
         if (!user) {
-            // If user does not exist, create a new user
             user = await models.Users.create({
                 email,
                 firstname,
                 lastname,
-                // Use a placeholder or null for the password if not needed
                 password: null
             });
         } else {
-            // Optionally update user information if needed
             await user.update({ firstname, lastname });
         }
-
-        // Pass the user object to the session
         cb(null, user);
     } catch (error) {
         console.error("Error handling Google login", error);
