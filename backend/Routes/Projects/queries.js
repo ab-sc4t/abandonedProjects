@@ -4,12 +4,15 @@ import bodyParser from "body-parser";
 import { sequelize } from "../../../schemas/index.js";
 import session from "express-session"
 import passport from "passport";
+import dotenv from 'dotenv';
+
+dotenv.config({ path: '../.env' });
 
 const router = express.Router();
 router.use(bodyParser.json());
 
 router.use(session({
-    secret: "TESTINGSESSION",
+    secret: process.env.SECRET_SESSION,
     resave: false,
     saveUninitialized: true
 }))
