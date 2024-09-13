@@ -1,7 +1,7 @@
 import './App.css';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Body from "./components/Body"
-import { CssBaseline, ThemeProvider, Box } from '@mui/material'
+import { CssBaseline, ThemeProvider} from '@mui/material'
 import RegisterPage from "./pages/RegisterPage"
 import LoginPage from "./pages/LoginPage"
 import AddProject from './pages/AddProject';
