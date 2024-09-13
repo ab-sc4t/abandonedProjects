@@ -6,6 +6,8 @@ import session from "express-session";
 import passport from "passport";
 import GoogleStrategy from "passport-google-oauth20";
 import dotenv from 'dotenv';
+import speakeasy from "speakeasy";
+import nodemailer from "nodemailer"
 
 dotenv.config({ path: '../.env' });
 
@@ -36,6 +38,32 @@ router.get("/", async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+//otp generation
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
+
+function sendOTPEmail(email, otp) {
+    const mailOptions = {
+        from: 'ayushbansal2612@gmail.com',
+        to: email,
+        subject: 'Your OTP Code',
+        text: `Your OTP code is ${otp}`
+    };
+
+    transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log('Email sent: ' + info.response);
+        }
+    });
+}
 
 // Check session route
 router.get('/check-session', (req, res) => {
@@ -68,7 +96,24 @@ router.get('/user', async (req, res) => {
     }
 });
 
+//verify-otp
+router.post('/verify-otp', (req, res) => {
+    const { otp } = req.body;
+    
+    const verified = speakeasy.totp.verify({
+        secret: process.env.OTP_SECRET,
+        encoding: 'base32',
+        token: otp
+    });
 
+    if (verified && req.session.otp === otp) {
+        // OTP is correct, proceed with login
+        res.redirect('http://localhost:3000');
+    } else {
+        // OTP is incorrect
+        res.status(401).send('Invalid OTP. Please try again.');
+    }
+});
 
 router.post('/register', async (req, res) => {
     try {
@@ -161,7 +206,11 @@ passport.use("google", new GoogleStrategy({
         } else {
             await user.update({ firstname, lastname });
         }
-        cb(null, user);
+        const otp = speakeasy.totp({
+            secret: process.env.OTP_SECRET, 
+            encoding: 'base32'
+        });
+        cb(null, {user, otp});
     } catch (error) {
         console.error("Error handling Google login", error);
         cb(error, null);
@@ -172,34 +221,34 @@ router.get('/auth/google', passport.authenticate('google', {
     scope: ['email', 'profile'],
 }));
 
-// Google OAuth callback route
 router.get('/auth/google/callback', passport.authenticate('google', {
     failureRedirect: '/login',
 }), (req, res) => {
-    // Access the authenticated user from req.user
     if (req.user) {
-        // Set the user ID in the session
-        req.session.userID = req.user.id;
+        req.session.userID = req.user.user.id;
+        req.session.otp = req.user.otp; // Store OTP in session for later verification
+        sendOTPEmail(email, otp);
+        res.redirect('http://localhost:3000/verify-otp'); // Redirect to OTP verification page
+    } else {
+        res.redirect('/login');
     }
-
-    // Redirect to frontend URL after successful login
-    res.redirect('http://localhost:3000'); // Adjust to your frontend route
 });
 
-
 passport.serializeUser((user, done) => {
-    // Serialize the user's ID into the session
+    console.log('Serializing user:', user);
     done(null, user.id);
 });
 
 passport.deserializeUser(async (id, done) => {
     try {
-        // Retrieve the user from the database
         const user = await models.Users.findByPk(id);
+        console.log('Deserialized user:', user);
         done(null, user);
     } catch (err) {
+        console.error('Error deserializing user:', err);
         done(err, null);
     }
 });
+
 
 export default router;

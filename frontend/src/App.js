@@ -7,6 +7,7 @@ import LoginPage from "./pages/LoginPage"
 import AddProject from './pages/AddProject';
 import YourProfile from "./pages/YourProfile"
 import SignInGoogle from './pages/SignInGoogle';
+import VerifyOTP from "./pages/VerifyOTP"
 import theme from './theme'
 
 
@@ -22,6 +23,7 @@ function App() {
           <Route path="/add-project" element={<AddProject />} />
           <Route path="/your-profile" element={<YourProfile />} />
           <Route path="/signin" element={<SignInGoogle />} />
+          <Route path="/verify-otp" element={<VerifyOTP />} />
         </Routes>
       </Router>
     </ThemeProvider>
