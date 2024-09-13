@@ -189,6 +189,8 @@ router.get('/auth/google/callback', passport.authenticate('google', {
 
 passport.serializeUser((user, done) => {
     // Serialize the user's ID into the session
+    console.log('Serializing user:', user);
+    
     done(null, user.id);
 });
 
@@ -196,8 +198,10 @@ passport.deserializeUser(async (id, done) => {
     try {
         // Retrieve the user from the database
         const user = await models.Users.findByPk(id);
+        console.log('Deserialized user:', user);
         done(null, user);
     } catch (err) {
+        console.error('Error deserializing user:', err);
         done(err, null);
     }
 });
