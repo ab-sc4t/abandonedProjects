@@ -45,8 +45,11 @@ const transporter = nodemailer.createTransport({
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-    }
+    },
+    debug: true,  // Enable debug mode
+    logger: true  // Log everything to the console
 });
+
 
 function sendOTPEmail(email, otp) {
     const mailOptions = {
@@ -58,12 +61,13 @@ function sendOTPEmail(email, otp) {
 
     transporter.sendMail(mailOptions, function (error, info) {
         if (error) {
-            console.log(error);
+            console.log('Error sending email:', error);  // Log the error if the email fails
         } else {
-            console.log('Email sent: ' + info.response);
+            console.log('Email sent: ' + info.response);  // Log success response
         }
     });
 }
+
 
 // Check session route
 router.get('/check-session', (req, res) => {
@@ -99,7 +103,7 @@ router.get('/user', async (req, res) => {
 //verify-otp
 router.post('/verify-otp', (req, res) => {
     const { otp } = req.body;
-    
+
     const verified = speakeasy.totp.verify({
         secret: process.env.OTP_SECRET,
         encoding: 'base32',
@@ -207,10 +211,10 @@ passport.use("google", new GoogleStrategy({
             await user.update({ firstname, lastname });
         }
         const otp = speakeasy.totp({
-            secret: process.env.OTP_SECRET, 
+            secret: process.env.OTP_SECRET,
             encoding: 'base32'
         });
-        cb(null, {user, otp});
+        cb(null, { user, otp });
     } catch (error) {
         console.error("Error handling Google login", error);
         cb(error, null);
@@ -227,7 +231,7 @@ router.get('/auth/google/callback', passport.authenticate('google', {
     if (req.user) {
         req.session.userID = req.user.user.id;
         req.session.otp = req.user.otp; // Store OTP in session for later verification
-        sendOTPEmail(email, otp);
+        sendOTPEmail(req.user.email, req.user.otp);
         res.redirect('http://localhost:3000/verify-otp'); // Redirect to OTP verification page
     } else {
         res.redirect('/login');
@@ -235,15 +239,17 @@ router.get('/auth/google/callback', passport.authenticate('google', {
 });
 
 passport.serializeUser((user, done) => {
-    console.log('Serializing user:', user);
-    done(null, user.id);
+    // Only serialize the user ID, not the entire user object
+    console.log('Serializing user ID:', user.user.id);  // user.user.id instead of user.id
+    done(null, user.user.id);
 });
 
 passport.deserializeUser(async (id, done) => {
     try {
+        // Fetch the user from the database using the ID
         const user = await models.Users.findByPk(id);
         console.log('Deserialized user:', user);
-        done(null, user);
+        done(null, user);  // Pass the user object
     } catch (err) {
         console.error('Error deserializing user:', err);
         done(err, null);
