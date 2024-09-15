@@ -14,7 +14,11 @@ router.use(bodyParser.json());
 router.use(session({
     secret: process.env.SECRET_SESSION,
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
+    cookie: {
+        secure: false,  
+        httpOnly: true,
+    }
 }))
 
 router.use(passport.initialize());

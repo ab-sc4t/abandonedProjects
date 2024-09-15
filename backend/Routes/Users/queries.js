@@ -6,6 +6,8 @@ import session from "express-session";
 import passport from "passport";
 import GoogleStrategy from "passport-google-oauth20";
 import dotenv from 'dotenv';
+import speakeasy from "speakeasy";
+import nodemailer from "nodemailer"
 
 dotenv.config({ path: '../.env' });
 
@@ -18,7 +20,8 @@ router.use(session({
     saveUninitialized: true,
     cookie: {
         secure: false,
-        maxAge: 24 * 60 * 60 * 1000
+        maxAge: 24 * 60 * 60 * 1000,
+        httpOnly: true,
     }
 }));
 
@@ -36,6 +39,38 @@ router.get("/", async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+//otp sending
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, 
+    auth: {
+        user: "abondonedprojects@gmail.com",
+        pass: process.env.EMAIL_PASS,
+    },
+    debug: true,  
+    logger: true  
+});
+
+
+function sendOTPEmail(email, otp) {
+    const mailOptions = {
+        from: 'abondonedprojects@gmail.com',
+        to: "ab.ayush2612@gmail.com",
+        subject: 'Your OTP Code',
+        text: `Your OTP code is ${otp}`
+    };
+
+    transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+            console.log('Error sending email:', error);  // Log the error if the email fails
+        } else {
+            console.log('Email sent: ' + info.response);  // Log success response
+        }
+    });
+}
+
 
 // Check session route
 router.get('/check-session', (req, res) => {
@@ -65,6 +100,30 @@ router.get('/user', async (req, res) => {
         }
     } else {
         res.status(401).json({ error: 'Not authenticated' });
+    }
+});
+
+//verify-otp
+router.post('/verify-otp', (req, res) => {
+    if (!req.isAuthenticated()) {
+        return res.status(401).send('Unauthorized');
+    }
+
+    const { otp } = req.body;
+    const verified = speakeasy.totp.verify({
+        secret: process.env.OTP_SECRET,
+        encoding: 'base32',
+        token: otp
+    });
+
+    console.log(req.session.otp);
+    console.log(otp);
+
+    if (req.session.otp === otp && verified) {
+        console.log("OTP IS CORRECT");
+        res.json({ redirect: '/' }); // Send redirect URL in JSON response
+    } else {
+        res.status(401).send('Invalid OTP. Please try again.');
     }
 });
 
@@ -161,7 +220,11 @@ passport.use("google", new GoogleStrategy({
         } else {
             await user.update({ firstname, lastname });
         }
-        cb(null, user);
+        const otp = speakeasy.totp({
+            secret: process.env.OTP_SECRET,
+            encoding: 'base32'
+        });
+        cb(null, { user, otp });
     } catch (error) {
         console.error("Error handling Google login", error);
         cb(error, null);
@@ -172,38 +235,36 @@ router.get('/auth/google', passport.authenticate('google', {
     scope: ['email', 'profile'],
 }));
 
-// Google OAuth callback route
 router.get('/auth/google/callback', passport.authenticate('google', {
     failureRedirect: '/login',
 }), (req, res) => {
-    // Access the authenticated user from req.user
     if (req.user) {
-        // Set the user ID in the session
-        req.session.userID = req.user.id;
+        req.session.userID = req.user.user.id;
+        req.session.otp = req.user.otp; // Store OTP in session for later verification
+        sendOTPEmail(req.user.email, req.user.otp);
+        res.redirect('http://localhost:3000/verify-otp'); // Redirect to OTP verification page
+    } else {
+        res.redirect('/login');
     }
-
-    // Redirect to frontend URL after successful login
-    res.redirect('http://localhost:3000'); // Adjust to your frontend route
 });
 
-
 passport.serializeUser((user, done) => {
-    // Serialize the user's ID into the session
-    console.log('Serializing user:', user);
-    
-    done(null, user.id);
+    // Only serialize the user ID, not the entire user object
+    console.log('Serializing user ID:', user.user.id);  // user.user.id instead of user.id
+    done(null, user.user.id);
 });
 
 passport.deserializeUser(async (id, done) => {
     try {
-        // Retrieve the user from the database
+        // Fetch the user from the database using the ID
         const user = await models.Users.findByPk(id);
         console.log('Deserialized user:', user);
-        done(null, user);
+        done(null, user);  // Pass the user object
     } catch (err) {
         console.error('Error deserializing user:', err);
         done(err, null);
     }
 });
+
 
 export default router;

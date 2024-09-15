@@ -7,14 +7,18 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '../.env' });
 
 const app = express();
-const corsOptions = {
-    origin: "http://localhost:3000",
-    optionsSuccessStatus: 200,
-    credentials: true,
-}
-app.use(cors(corsOptions));
-const port = process.env.DB_PORT;
 
+const corsOptions = {
+    origin: "http://localhost:3000",  // Only allow requests from this origin
+    credentials: true,  // Allow cookies and other credentials to be sent
+    optionsSuccessStatus: 200  // Some browsers (like IE11) may use 204 as a fallback status code for preflight
+};
+
+app.use(cors(corsOptions));
+
+// other middleware and routes
+
+const port = process.env.DB_PORT || 8080;
 
 sequelize.sync({force: true}).then(()=>{
     console.log("Database Synchronized");
