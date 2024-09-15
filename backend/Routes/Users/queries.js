@@ -20,7 +20,8 @@ router.use(session({
     saveUninitialized: true,
     cookie: {
         secure: false,
-        maxAge: 24 * 60 * 60 * 1000
+        maxAge: 24 * 60 * 60 * 1000,
+        httpOnly: true,
     }
 }));
 
@@ -39,22 +40,24 @@ router.get("/", async (req, res) => {
     }
 });
 
-//otp generation
+//otp sending
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, 
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: "abondonedprojects@gmail.com",
+        pass: process.env.EMAIL_PASS,
     },
-    debug: true,  // Enable debug mode
-    logger: true  // Log everything to the console
+    debug: true,  
+    logger: true  
 });
 
 
 function sendOTPEmail(email, otp) {
     const mailOptions = {
-        from: 'ayushbansal2612@gmail.com',
-        to: email,
+        from: 'abondonedprojects@gmail.com',
+        to: "ab.ayush2612@gmail.com",
         subject: 'Your OTP Code',
         text: `Your OTP code is ${otp}`
     };
@@ -102,22 +105,29 @@ router.get('/user', async (req, res) => {
 
 //verify-otp
 router.post('/verify-otp', (req, res) => {
-    const { otp } = req.body;
+    if (!req.isAuthenticated()) {
+        return res.status(401).send('Unauthorized');
+    }
 
+    const { otp } = req.body;
     const verified = speakeasy.totp.verify({
         secret: process.env.OTP_SECRET,
         encoding: 'base32',
         token: otp
     });
 
-    if (verified && req.session.otp === otp) {
-        // OTP is correct, proceed with login
-        res.redirect('http://localhost:3000');
+    console.log(req.session.otp);
+    console.log(otp);
+
+    if (req.session.otp === otp && verified) {
+        console.log("OTP IS CORRECT");
+        res.json({ redirect: '/' }); // Send redirect URL in JSON response
     } else {
-        // OTP is incorrect
         res.status(401).send('Invalid OTP. Please try again.');
     }
 });
+
+
 
 router.post('/register', async (req, res) => {
     try {

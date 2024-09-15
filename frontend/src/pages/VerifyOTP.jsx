@@ -5,20 +5,25 @@ function VerifyOTP() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const response = await fetch('/verify-otp', {
+    
+        const response = await fetch('http://localhost:8080/profile/verify-otp', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ otp }),
+            credentials: 'include'  // This ensures cookies are sent
         });
-
+    
         if (response.ok) {
-            window.location.href = '/'; // Redirect on success
+            const result = await response.json(); // Parse JSON response
+            window.location.href = result.redirect; // Redirect based on response
         } else {
             alert('Invalid OTP. Please try again.');
         }
     };
+    
+    
 
     return (
         <form onSubmit={handleSubmit}>
