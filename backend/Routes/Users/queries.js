@@ -119,7 +119,7 @@ router.post('/verify-otp', (req, res) => {
     console.log(req.session.otp);
     console.log(otp);
 
-    if (req.session.otp === otp && verified) {
+    if (req.session.otp === otp) {
         console.log("OTP IS CORRECT");
         res.json({ redirect: '/' }); // Send redirect URL in JSON response
     } else {

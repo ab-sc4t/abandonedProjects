@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
+import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { Box, Button, Typography, Stack } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import axios from "axios";
@@ -40,7 +40,7 @@ const Body = () => {
 
         fetchProjects();
         checkUser();
-    }, []);
+    }, [user]);
 
     useEffect(() => {
         const fetchProjects2 = async () => {
