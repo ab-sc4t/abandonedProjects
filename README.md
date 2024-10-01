@@ -1,4 +1,4 @@
-Hello everyone this is my project named ***"Abandoned Projects"*** (ignore the repo name, i made a typo).
+Hello everyone this is my project named ***"Abandoned Projects"*** .
 ## Idea behind this project:
 A user can login it to this project and then can see the incomplete projects uploaded by other users and can contact them and further complete the respected project in collaboration.
 
