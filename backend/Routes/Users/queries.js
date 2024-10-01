@@ -46,7 +46,7 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true, 
     auth: {
-        user: "abondonedprojects@gmail.com",
+        user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
     debug: true,  
@@ -56,8 +56,8 @@ const transporter = nodemailer.createTransport({
 
 function sendOTPEmail(email, otp) {
     const mailOptions = {
-        from: 'abondonedprojects@gmail.com',
-        to: "ab.ayush2612@gmail.com",
+        from: process.env.EMAIL_USER,
+        to: email,
         subject: 'Your OTP Code',
         text: `Your OTP code is ${otp}`
     };
@@ -129,57 +129,57 @@ router.post('/verify-otp', (req, res) => {
 
 
 
-router.post('/register', async (req, res) => {
-    try {
-        const { email, firstname, lastname, password } = req.body;
-        const existingUser = await models.Users.findOne({ where: { email } });
-        if (existingUser) {
-            return res.status(400).json({ error: 'Email already in use' });
-        }
+// router.post('/register', async (req, res) => {
+//     try {
+//         const { email, firstname, lastname, password } = req.body;
+//         const existingUser = await models.Users.findOne({ where: { email } });
+//         if (existingUser) {
+//             return res.status(400).json({ error: 'Email already in use' });
+//         }
 
-        bcrypt.hash(password, saltRounds, async (err, hash) => {
-            if (err) {
-                return res.status(500).json({ error: 'Error hashing password' });
-            }
-            try {
-                const user = await models.Users.create({
-                    firstname,
-                    lastname,
-                    email,
-                    password: hash,
-                });
-                const userID = user.id;
-                req.session.userID = userID;
-                res.status(201).json({ userID });
-            } catch (error) {
-                res.status(500).json({ error: 'Error creating user or user table' });
-            }
-        });
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
+//         bcrypt.hash(password, saltRounds, async (err, hash) => {
+//             if (err) {
+//                 return res.status(500).json({ error: 'Error hashing password' });
+//             }
+//             try {
+//                 const user = await models.Users.create({
+//                     firstname,
+//                     lastname,
+//                     email,
+//                     password: hash,
+//                 });
+//                 const userID = user.id;
+//                 req.session.userID = userID;
+//                 res.status(201).json({ userID });
+//             } catch (error) {
+//                 res.status(500).json({ error: 'Error creating user or user table' });
+//             }
+//         });
+//     } catch (error) {
+//         res.status(400).json({ error: error.message });
+//     }
+// });
 
-router.post("/login", async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        const user = await models.Users.findOne({ where: { email } });
+// router.post("/login", async (req, res) => {
+//     try {
+//         const { email, password } = req.body;
+//         const user = await models.Users.findOne({ where: { email } });
 
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
+//         if (!user) {
+//             return res.status(404).json({ error: 'User not found' });
+//         }
 
-        const match = await bcrypt.compare(password, user.password);
-        if (!match) {
-            return res.status(401).json({ error: 'Invalid password' });
-        } else {
-            req.session.userID = user.id;
-            res.status(200).json({ message: 'Login successful', redirectUrl: '/' });
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+//         const match = await bcrypt.compare(password, user.password);
+//         if (!match) {
+//             return res.status(401).json({ error: 'Invalid password' });
+//         } else {
+//             req.session.userID = user.id;
+//             res.status(200).json({ message: 'Login successful', redirectUrl: '/' });
+//         }
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// });
 
 router.get('/logout', (req, res) => {
     req.logout(err => {
@@ -241,7 +241,7 @@ router.get('/auth/google/callback', passport.authenticate('google', {
     if (req.user) {
         req.session.userID = req.user.user.id;
         req.session.otp = req.user.otp; // Store OTP in session for later verification
-        sendOTPEmail(req.user.email, req.user.otp);
+        sendOTPEmail(req.user.user.email, req.user.otp);
         res.redirect('http://localhost:3000/verify-otp'); // Redirect to OTP verification page
     } else {
         res.redirect('/login');

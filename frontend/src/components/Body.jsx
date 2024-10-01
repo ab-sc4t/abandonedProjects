@@ -40,7 +40,7 @@ const Body = () => {
 
         fetchProjects();
         checkUser();
-    }, [user]);
+    }, []);
 
     useEffect(() => {
         const fetchProjects2 = async () => {
