@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import {Box, Button, Typography} from "@mui/material"
-import { useTheme } from '@mui/material/styles';
 
 function VerifyOTP() {
-    const theme = useTheme();
     const [otp, setOTP] = useState('');
 
     const handleSubmit = async (e) => {
