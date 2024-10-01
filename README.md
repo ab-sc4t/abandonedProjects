@@ -23,12 +23,13 @@ PassportJS
 ## Steps to run this project
 *Note: Create an anv file on the project directory level and give the relevant values to the env variables used thorughout the project*
 1. Git clone the project
-2. In the project folder open two terminals
+2. In the project folder open three terminals
 3. On first terminal go to backend folder
 4. On second terminal go to frontend folder
-5. Type npm i on both the terminals to install the necessary npm packages used
-6. On the backend one run "nodemon"
-7. On the frontend one run "npm start"
+5. On third terminal go to schemas folder and run "npm i"
+6. Type "npm i" on the first two terminals to install the necessary npm packages used
+7. On the backend one run "nodemon"
+8. On the frontend one run "npm start"
    *AND YOU ARE ALL SET!!*
 
 ## ENV FILE VARIABLES EXPLAINED
